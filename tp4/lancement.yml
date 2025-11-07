@@ -1,0 +1,31 @@
+
+- name: Installer MySQL
+  hosts: sgbd
+  become: true
+  vars:
+    mysql_root_password: "Chiko2100"   
+  tasks:
+    - name: Installer MySQL
+      apt:
+        name: mysql-server
+        state: present
+        update_cache: yes
+
+    - name: demarrage
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+   
+
+
+- name: Installer client sur la machine mvd1
+  hosts: client
+  become: true
+  tasks:
+    - name: Installer mysql-client
+      apt:
+        name: mysql-server
+        state: present
+        update_cache: yes

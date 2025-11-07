@@ -1,0 +1,11 @@
+sgbd:
+  hosts:
+    vmu2:
+      ansible_host: 172.28.100.101
+      ansible_user: ubuntu
+
+client:
+  hosts:
+    vmu3:
+      ansible_host: 172.28.100.116
+      ansible_user: ubuntu
