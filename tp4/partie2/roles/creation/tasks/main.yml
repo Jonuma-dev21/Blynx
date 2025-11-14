@@ -1,0 +1,22 @@
+---
+
+- name: Créer la base de données pour l'école
+  community.mysql.mysql_db:
+    name: ecole
+    state: present
+    encoding: utf8mb4
+    collation: utf8mb4_general_ci
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Créer un utilisateur MySQL pour accès distant
+  community.mysql.mysql_user:
+    name: "{{ mysql_default_user }}"
+    password: "{{ mysql_user_password }}"
+    host: "{{ mysql_user_host }}"
+    priv: "ecole.*:ALL,GRANT"
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /run/mysqld/mysqld.sock

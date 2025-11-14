@@ -1,99 +1,13 @@
-- name: Préparer dépendances python pour modules MySQL
-  hosts: masters
+---
+- hosts: serveur
+  remote_user: ubuntu
   become: true
+
   vars:
-    ansible_python_interpreter: /usr/bin/python3
-  tasks:
-    - name: Installer paquets build pour mysqlclient
-      apt:
-        name:
-          - python3-pip
-          - python3-dev
-          - default-libmysqlclient-dev
-          - build-essential
-        state: present
-        update_cache: yes
+    peer: "{{ groups['serveur'] | difference([inventory_hostname]) | first }}"
+    peer_ip: "{{ hostvars[peer].ansible_host }}"
 
-    - name: Installer PyMySQL (utilisé par community.mysql)
-      pip:
-        name: PyMySQL
-        state: present
-        executable: pip3
-
-- name: Installer et configurer MySQL sur les masters (vmu1, vmu2)
-  hosts: masters
-  become: true
-  vars:
-    mysql_root_password: "Chiko2100"        # change
-    repl_user: replicant
-    repl_password: bzibzi           # change
-  tasks:
-    - name: Installer mysql-server
-      apt:
-        name: mysql-server
-        state: present
-        update_cache: yes
-
-    - name: Assurer service mysql démarré
-      service:
-        name: mysql
-        state: started
-        enabled: yes
-
-    - name: Appliquer configuration mysqld (server-id, binlog, log_slave_updates)
-      block:
-        - name: Template my.cnf avec options de réplication
-          template:
-            src: templates/mysqld_replication.cnf.j2
-            dest: /etc/mysql/mysql.conf.d/99-replication.cnf
-            owner: root
-            group: root
-            mode: '0644'
-          notify: Restart mysql
-
-      # Template example (templates/mysqld_replication.cnf.j2) :
-      # [mysqld]
-      # server-id = {{ hostvars[inventory_hostname].server_id | default(inventory_hostname | regex_replace('\\D','') | int) }}
-      # log_bin = /var/log/mysql/mysql-bin.log
-      # binlog_format = ROW
-      # log_slave_updates = 1
-      # expire_logs_days = 7
-      # max_binlog_size = 100M
-
-    - name: Créer l'utilisateur root mysql (si besoin) via socket
-      community.mysql.mysql_user:
-        name: root
-        host: localhost
-        password: "{{ mysql_root_password }}"
-        check_implicit_admin: true
-        login_unix_socket: /var/run/mysqld/mysqld.sock
-        state: present
-
-    - name: Créer compte de réplication sur chaque master (privilèges REPLICATION SLAVE)
-      community.mysql.mysql_user:
-        name: "{{ repl_user }}"
-        password: "{{ repl_password }}"
-        host_all: false
-        host: "%"
-        priv: ""
-        state: present
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
-        login_unix_socket: /var/run/mysqld/mysqld.sock
-
-    - name: Donner REPLICATION privileges au user de réplication
-      community.mysql.mysql_user:
-        name: "{{ repl_user }}"
-        host: "%"
-        priv: "*.*:REPLICATION SLAVE"
-        state: present
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
-        login_unix_socket: /var/run/mysqld/mysqld.sock
-
-  handlers:
-    - name: Restart mysql
-      service:
-        name: mysql
-        state: restarted
-        enabled: yes
+  roles:
+    - common
+    - master
+    - slave

@@ -76,3 +76,8 @@ Avant la requete
 ![images](./picture/pic1_3.png)
 après la requete
 ![images](./picture/pic1_4.png)
+
+## Partie 2
+
+Pour l'instant j'ai réussi à faire le master-master il me reste à intégrer le proxy
+

@@ -1,0 +1,5 @@
+[mysqld]
+bind-address = {{ mysql_bind }}
+server-id = {{ server_id }}
+log_bin=/var/log/mysql/mysql-bin.log
+binlog_format = ROW
