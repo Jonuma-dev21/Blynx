@@ -1,0 +1,28 @@
+---
+- name: Installer dépendances Python pour modules MySQL sur tous les masters
+  hosts: serveur
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Mettre à jour le cache apt
+      apt:
+        update_cache: yes
+
+    - name: Installer paquets nécessaires pour mysqlclient et compilation
+      apt:
+        name:
+          - python3-dev
+          - default-libmysqlclient-dev
+          - build-essential
+          - python3-pymysql   # PyMySQL pour community.mysql
+          - python3-mysqldb   # mysqlclient pour community.mysql
+        state: present
+
+    - name: Vérifier les modules Python MySQL installés
+      ansible.builtin.command: python3 -c "import pymysql, MySQLdb; print('OK')"
+      register: check_modules
+      changed_when: false
+
+    - debug:
+        msg: "Modules Python MySQL installés correctement : {{ check_modules.stdout }}"

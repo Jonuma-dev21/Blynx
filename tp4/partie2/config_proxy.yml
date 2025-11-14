@@ -1,0 +1,47 @@
+
+- name: Installer ProxySQL et configurer les backends (proxy)
+  hosts: proxy
+  become: true
+  vars:
+    proxysql_admin_user: admin
+    proxysql_admin_password: adminpass
+    mysql_user_for_proxy: proxysql_user
+    mysql_user_password_for_proxy: proxypass
+  tasks:
+    - name: Installer proxysql package
+      apt:
+        name: proxysql
+        state: present
+        update_cache: yes
+
+    - name: Assurer proxysql démarré
+      service:
+        name: proxysql
+        state: started
+        enabled: yes
+
+    - name: Ajouter utilisateurs MySQL dans ProxySQL (pour les connexions applicatives)
+      community.proxysql.proxysql_mysql_users:
+        login_user: "{{ proxysql_admin_user }}"
+        login_password: "{{ proxysql_admin_password }}"
+        user: "{{ mysql_user_for_proxy }}"
+        password: "{{ mysql_user_password_for_proxy }}"
+        default_hostgroup: 10
+        active: true
+
+    - name: Ajouter backends (vmu1 et vmu2) dans ProxySQL hostgroup 10 (writer/read)
+      community.proxysql.proxysql_backend_servers:
+        login_user: "{{ proxysql_admin_user }}"
+        login_password: "{{ proxysql_admin_password }}"
+        hostgroup: 10
+        backend_servers:
+          - { hostname: "{{ hostvars['vmu1'].ansible_host }}", port: 3306, weight: 100 }
+          - { hostname: "{{ hostvars['vmu2'].ansible_host }}", port: 3306, weight: 100 }
+
+    - name: Charger la configuration en mémoire et sauvegarder sur disque (via manage_config)
+      community.proxysql.proxysql_manage_config:
+        login_user: "{{ proxysql_admin_user }}"
+        login_password: "{{ proxysql_admin_password }}"
+        to_save: true
+        to_reload: true
+

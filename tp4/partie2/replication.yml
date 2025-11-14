@@ -1,0 +1,67 @@
+- name: Configurer réplication master↔master
+  hosts: vmu1
+  become: true
+  vars:
+    mysql_root_password: "rootroot"
+    repl_user: repl
+    repl_password: replPass123
+  tasks:
+    - name: Récupérer le statut binaire du primaire (vmu1)
+      community.mysql.mysql_replication:
+        mode: getprimary
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+      register: primary_status
+
+    - name: Configurer vmu2 pour répliquer depuis vmu1 (changeprimary)
+      delegate_to: vmu2
+      community.mysql.mysql_replication:
+        mode: changeprimary
+        primary_host: "{{ hostvars['vmu1'].ansible_host | default('127.0.0.1') }}"
+        primary_port: 3306
+        primary_user: "{{ repl_user }}"
+        primary_password: "{{ repl_password }}"
+        primary_log_file: "{{ primary_status.primary_log_file }}"
+        primary_log_pos: "{{ primary_status.primary_log_pos }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Démarrer le replica sur vmu2
+      delegate_to: vmu2
+      community.mysql.mysql_replication:
+        mode: startreplica
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Maintenant récupérer le statut binaire du primaire sur vmu2
+      delegate_to: vmu2
+      community.mysql.mysql_replication:
+        mode: getprimary
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+      register: primary_status_vmu2
+
+    - name: Configurer vmu1 pour répliquer depuis vmu2 (changeprimary)
+      community.mysql.mysql_replication:
+        mode: changeprimary
+        primary_host: "{{ hostvars['vmu2'].ansible_host | default('127.0.0.1') }}"
+        primary_port: 3306
+        primary_user: "{{ repl_user }}"
+        primary_password: "{{ repl_password }}"
+        primary_log_file: "{{ primary_status_vmu2.primary_log_file }}"
+        primary_log_pos: "{{ primary_status_vmu2.primary_log_pos }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Démarrer le replica sur vmu1
+      community.mysql.mysql_replication:
+        mode: startreplica
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+

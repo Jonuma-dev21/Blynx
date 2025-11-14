@@ -1,0 +1,17 @@
+serveur:
+  hosts:
+    vmu1:
+      ansible_host: 172.28.101.75
+      ansible_user: ubuntu
+      ansible_private_key_file: '/home/jonuma/.ssh/cloud.key'
+    vmu2:
+      ansible_host: 172.28.100.101
+      ansible_user: ubuntu
+      ansible_private_key_file: '/home/jonuma/.ssh/cloud.key'
+
+proxy:
+  hosts:
+    vmu3:
+      ansible_host: 172.28.100.116
+      ansible_user: ubuntu
+      ansible_private_key_file: '/home/jonuma/.ssh/cloud.key'
