@@ -2,7 +2,7 @@
 
 - name: Créer la base de données pour l'école
   community.mysql.mysql_db:
-    name: ecole
+    name: "{{ mysql_db }}"
     state: present
     encoding: utf8mb4
     collation: utf8mb4_general_ci
@@ -15,7 +15,7 @@
     name: "{{ mysql_default_user }}"
     password: "{{ mysql_user_password }}"
     host: "{{ mysql_user_host }}"
-    priv: "ecole.*:ALL,GRANT"
+    priv: "{{ mysql_db }}.*:ALL,GRANT"
     state: present
     login_user: root
     login_password: "{{ mysql_root_password }}"

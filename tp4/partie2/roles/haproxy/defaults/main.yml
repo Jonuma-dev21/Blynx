@@ -1,0 +1,11 @@
+---
+haproxy_frontend_port: 3306
+
+mysql_backends:
+  - name: master1
+    ip: "{{ hostvars['master1'].ansible_host }}"
+    port: 3306
+
+  - name: master2
+    ip: "{{ hostvars['master2'].ansible_host }}"
+    port: 3306
