@@ -20,8 +20,10 @@
     host: localhost
     password: "{{ mysql_root_password }}"
     check_implicit_admin: true
-    login_unix_socket: /run/mysqld/mysqld.sock
     state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /run/mysqld/mysqld.sock
 
 - name: Autoriser les connexions distantes à MySQL
   ansible.builtin.lineinfile:
@@ -29,8 +31,4 @@
     regexp: '^bind-address'
     line: 'bind-address = 0.0.0.0'
     backup: yes
-
-- name: Redémarrer MySQL
-  ansible.builtin.service:
-    name: mysql
-    state: restarted
+  notify: Restart mysql

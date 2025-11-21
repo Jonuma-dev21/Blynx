@@ -8,12 +8,12 @@
     peer_ip: "{{ hostvars[peer].ansible_host }}"
 
   roles:
+    - python_bib
+    - installation
+    - securisation
     - common
     - master
     - slave
     - creation
+    
 
-- hosts: proxy
-  become: true
-  roles:
-    - haproxy
