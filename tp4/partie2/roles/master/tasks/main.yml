@@ -4,7 +4,7 @@
   community.mysql.mysql_user:
     name: "{{ replication_user }}"
     password: "{{ replication_pass }}"
-    host: "{{ peer_ip }}"
+    host: "{{ replication_host }}"
     priv:
       "*.*": "REPLICATION SLAVE"
     state: present

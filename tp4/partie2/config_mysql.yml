@@ -11,3 +11,9 @@
     - common
     - master
     - slave
+    - creation
+
+- hosts: proxy
+  become: true
+  roles:
+    - haproxy

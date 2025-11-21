@@ -1,5 +1,6 @@
 replication_user: replicant
 replication_pass: bzi
+replication_host: "%"
 mysql_root_password: Chiko2100
 mysql_bind: 0.0.0.0
 mysql_default_user: "jonuma"
