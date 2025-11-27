@@ -143,7 +143,7 @@ Voici la commande pour lancer les taches pour mettre en place la configuration e
 ansible-playbook -i inventaire.yml config_mysql.yml
 ```
 ### 2.3 Détails sur les roles.
-**nb: les éléments de la liste sont cliquables**
+## **nb: les éléments de la liste de couleur sont cliquables, ils mènent directement aux fichiers**
 
 - [python_bib](./roles/python_bib/tasks/main.yml) : role pour mettre en place bibliothèques python nécéssaires pour **community.mysql**.
 
@@ -158,5 +158,47 @@ ansible-playbook -i inventaire.yml config_mysql.yml
 
   - [slave](./roles/slave/tasks/main.yml) : 
 Ces deux roles sont modulaires et permettrent de faire la replication master-slave, apppele sur les deux serveurs cela nous une configuration master-master.
-- [creation](./roles/creation/tasks/main.yml) : role sert a créer une base et un utilisateur avec des variables definis dans le fichier.
+- [creation](./roles/creation/tasks/main.yml) : role qui sert à créer une base et un utilisateur avec des variables definis dans le fichier [qui stocke les variables](./group_vars/all.yml).
+- [haproxy](./roles/haproxy/tasks/main.yml) : role sert à créer le serveur intermédiaire pour jouer le role de Load Balancing. J'ai utliser le paquet haproxy, parce que j'arrivais pas installer ProxySql comme dans mes TPs précédents.
 
+
+Après le lancement du playbook **config_mysql**
+### Debrifing
+On voit clairement ici que la replication fonctionne dans les deux sens.
+#### vmu1@ (Master) vmu2@(Slave)
+Ici on prouve dans un sens visible depuis ces captures.
+//img
+#### vmu2@ (Master) vmu1@(Slave)
+Ici on prouve dans l'autre sens visible depuis ces captures.
+//img
+#### Proxy
+Le proxy est mis en place et je peux bien me connecter en local depuis la machine **vmu3** pour envoyer des requtes vers les serveurs Mysql.
+#### Test de Proxy avec unn SELECT
+//img
+
+#### Test de la disponibilité sur les serveurs.
+En configurant Le serveur proxy pour qu'il redirige les requetes vers les deux serveurs mysql, avec cela j'ai pu mettre en un systeme ou la disponibilité est primée sur la cohérence des données si l'une des serveurs.
+
+Testons maintenant la disponibilité
+Nous faire le serveur  mysql de la machine **vmu2@** Et on peut voir dans l'image que j'ai toujjours accès au données.
+//img.
+
+## 3 Validation 
+
+### 3.1 Preuve L'idempotence
+Mon automatisation respect l'idempotence quasi parfait ne serait ce a cause du fait que je dois Stopper **Le Slave** avant de faire la replication, sinon tout est OK.
+Comme on peut le voir sur ces Photos.
+### 3.2 Preuve du retabissement d'un Mysql arreté manuellement.
+Preuve:
+Ici le serveur de la **vum2@** arreté.
+//img
+Ici tout est retabli avec le playbook
+
+### 3.3 Vandalisation
+Ici pour prouver la vandalisation je vais prendre une machine qui part rien sans aucune configuration desssus.
+AVant
+
+Après
+### Test connnection
+### securite
+### replication master master

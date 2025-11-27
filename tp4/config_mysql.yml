@@ -15,5 +15,10 @@
     - master
     - slave
     - creation
+
+- hosts: proxy
+  remote_user: ubuntu
+  become: true
+    - haproxy
     
 
