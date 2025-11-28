@@ -1,0 +1,41 @@
+---
+- name: Installer Minikube sur Ubuntu/Debian
+  hosts: all
+  become: yes
+  vars:
+    minikube_version: "latest"
+
+  tasks:
+    - name: Installer les dépendances nécessaires
+      apt:
+        name:
+          - curl
+          - conntrack
+          - socat
+          - ebtables
+          - ethtool
+          - docker.io
+        state: present
+        update_cache: yes
+
+    - name: Télécharger Minikube
+      get_url:
+        url: "https://github.com/kubernetes/minikube/releases/{{ minikube_version }}/download/minikube-linux-amd64"
+        dest: "/tmp/minikube-linux-amd64"
+        mode: '0755'
+
+    - name: Installer Minikube
+      command: "install /tmp/minikube-linux-amd64 /usr/local/bin/minikube creates=/usr/local/bin/minikube"
+
+    - name: Supprimer le fichier téléchargé
+      file:
+        path: "/tmp/minikube-linux-amd64"
+        state: absent
+
+    - name: Vérifier l'installation
+      command: minikube version
+      register: minikube_version_output
+
+    - name: Afficher la version de Minikube
+      debug:
+        msg: "{{ minikube_version_output.stdout }}"

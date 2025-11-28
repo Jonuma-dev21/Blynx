@@ -28,7 +28,7 @@ variable "os_region" {
 }
 
 variable "ssh_key_name" {
-  description = "Nom du keypair SSH à utiliser pour les VM"
+  description = "Nom du keypair SSH pour les VM"
   type        = string
 }
 
