@@ -98,7 +98,7 @@ Le groupe `[proxy]` contient le serveur servant de relais entre les deux maître
 serveur:
   hosts:
     master1:
-      ansible_host: 172.28.100.229
+      ansible_host: 172.28.100.217
       ansible_user: ubuntu
       ansible_private_key_file: '/home/jonuma/.ssh/cloud.key'
       server_id: 1
@@ -166,22 +166,24 @@ Après le lancement du playbook **config_mysql**
 ### Debrifing
 On voit clairement ici que la replication fonctionne dans les deux sens.
 #### vmu1@ (Master) vmu2@(Slave)
-Ici on prouve dans un sens visible depuis ces captures.
-//img
+Ici on prouve la replication dans un sens visible depuis ces captures.
+![master1](./picture/master1.png)
 #### vmu2@ (Master) vmu1@(Slave)
 Ici on prouve dans l'autre sens visible depuis ces captures.
-//img
+![master1](./picture/master2.png)
 #### Proxy
 Le proxy est mis en place et je peux bien me connecter en local depuis la machine **vmu3** pour envoyer des requtes vers les serveurs Mysql.
 #### Test de Proxy avec unn SELECT
-//img
+![master1](./picture/proxy1.png)
 
 #### Test de la disponibilité sur les serveurs.
 En configurant Le serveur proxy pour qu'il redirige les requetes vers les deux serveurs mysql, avec cela j'ai pu mettre en un systeme ou la disponibilité est primée sur la cohérence des données si l'une des serveurs.
 
 Testons maintenant la disponibilité
-Nous faire le serveur  mysql de la machine **vmu2@** Et on peut voir dans l'image que j'ai toujjours accès au données.
-//img.
+Nous allons faire le serveur  mysql de la machine **vmu2@**
+![master1](./picture/serveur_stop.png)
+ Et on peut voir dans l'image que j'ai toujjours accès au données.
+![master1](./picture/disponible.png)
 
 ## 3 Validation 
 
@@ -191,14 +193,17 @@ Comme on peut le voir sur ces Photos.
 ### 3.2 Preuve du retabissement d'un Mysql arreté manuellement.
 Preuve:
 Ici le serveur de la **vum2@** arreté.
-//img
+![master1](./picture/serveur_stop1.png) 
 Ici tout est retabli avec le playbook
-
+![master1](./picture/serveur_start2.png)
 ### 3.3 Vandalisation
 Ici pour prouver la vandalisation je vais prendre une machine qui part rien sans aucune configuration desssus.
-AVant
+Ici on peut voir toutes les modifications qui ont été faites
+![master1](./picture/no_mysql.png)
+Test depuis le bash avant et après le lancement du playbook 
+![master1](./picture/no_mysql1.png)
 
-Après
-### Test connnection
-### securite
-### replication master master
+### sécurisation
+![image](./picture/securisation.png)
+ 
+ 

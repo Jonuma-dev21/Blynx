@@ -1,4 +1,8 @@
 ---
+- name: Mettre à jour la liste des paquets apt
+  apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian"
 
 - name: Installer les dépendances système pour Python MySQL
   package:

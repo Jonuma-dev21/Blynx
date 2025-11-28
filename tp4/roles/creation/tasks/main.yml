@@ -20,3 +20,16 @@
     login_user: root
     login_password: "{{ mysql_root_password }}"
     login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Créer la table etudiant dans la base ecole
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_unix_socket: /run/mysqld/mysqld.sock
+    login_db: "{{ mysql_db }}"
+    query: |
+      CREATE TABLE IF NOT EXISTS etudiant (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nom VARCHAR(50) NOT NULL,
+        age INT NOT NULL
+      );

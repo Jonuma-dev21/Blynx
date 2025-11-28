@@ -19,6 +19,9 @@
 - hosts: proxy
   remote_user: ubuntu
   become: true
+
+  roles:
     - haproxy
+
     
 

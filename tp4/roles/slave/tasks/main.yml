@@ -1,12 +1,11 @@
 ---
+
 - name: Stop replication before changing master
   community.mysql.mysql_replication:
     mode: stopreplica
     login_user: root
     login_password: "{{ mysql_root_password }}"
     login_unix_socket: /var/run/mysqld/mysqld.sock
-
-
 
 - name: Se connecter au master peer
   community.mysql.mysql_replication:

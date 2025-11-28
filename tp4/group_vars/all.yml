@@ -7,5 +7,6 @@ mysql_default_user: "jonuma"
 mysql_user_host: "%"
 mysql_user_password: bzibzi
 mysql_db: ecole
+mysql_table: etudiant
 mysql_proxy_user: jonuma
 mysql_proxy_password: bzibzi
