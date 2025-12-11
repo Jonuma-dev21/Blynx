@@ -1,0 +1,167 @@
+---
+- name: Installer Kubernetes + containerd (Debian 12)
+  hosts: all
+  become: yes
+  vars:
+    kubernetes_version: "1.30"
+
+  tasks:
+    - name: Installer dépendances
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+
+    - name: Ajouter keyring Docker
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Ajouter repo Docker
+      copy:
+        dest: /etc/apt/sources.list.d/docker.list
+        content: |
+          deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable
+
+    - name: Installer containerd.io
+      apt:
+        name: containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Créer config containerd
+      command: containerd config default
+      register: containerd_cfg
+
+    - name: Installer config containerd
+      copy:
+        dest: /etc/containerd/config.toml
+        content: "{{ containerd_cfg.stdout }}"
+
+    - name: Activer SystemdCgroup dans containerd
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+
+    - name: Redémarrer containerd
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    - name: Charger modules kernel
+      copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+
+    - name: Charger modules immédiatement (idempotent)
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - overlay
+        - br_netfilter
+
+
+    - name: Configurer sysctl
+      copy:
+        dest: /etc/sysctl.d/k8s.conf
+        content: |
+          net.bridge.bridge-nf-call-iptables = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.ipv4.ip_forward = 1
+
+    - name: Appliquer sysctl
+      command: sysctl --system
+
+    # --- DÉPÔT KUBERNETES PKGS.K8S.IO ---
+
+    - name: Ajouter keyring Kubernetes
+      get_url:
+        url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/Release.key"
+        dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+        mode: "0644"
+
+    - name: Ajouter repo Kubernetes officiel
+      copy:
+        dest: /etc/apt/sources.list.d/kubernetes.list
+        content: |
+          deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/deb/ /
+        mode: "0644"
+
+    - name: Installer kubelet kubeadm kubectl
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        update_cache: yes
+
+    - name: Activer kubelet
+      systemd:
+        name: kubelet
+        enabled: yes
+
+
+# -------------------------
+# CONTROL PLANE
+# -------------------------
+- name: Initialiser control-plane
+  hosts: control_plane
+  become: yes
+  tasks:
+    - name: kubeadm init
+      command: kubeadm init --pod-network-cidr=10.244.0.0/16
+      register: k8s_init
+      args:
+        creates: /etc/kubernetes/admin.conf
+
+    - name: Créer répertoire kubeconfig pour l'utilisateur
+      file:
+        path: /home/{{ ansible_user }}/.kube
+        state: directory
+        owner: "{{ ansible_user }}"
+        mode: 0700
+
+    - name: Copier kubeconfig
+      command: cp /etc/kubernetes/admin.conf /home/{{ ansible_user }}/.kube/config
+      args:
+        creates: /home/{{ ansible_user }}/.kube/config
+
+    - name: Changer permissions kubeconfig
+      file:
+        path: /home/{{ ansible_user }}/.kube/config
+        owner: "{{ ansible_user }}"
+
+
+    - name: Récupérer join command (token)
+      command: kubeadm token create --print-join-command
+      register: join_cmd
+
+
+    - name: Sauvegarder token pour workers
+      set_fact:
+        worker_join: "{{ join_cmd.stdout }}"
+
+
+# -------------------------
+# WORKER NODES
+# -------------------------
+- name: Joindre les workers au cluster
+  hosts: noeud1,noeud2
+  become: yes
+  tasks:
+    - name: Join cluster
+      command: "{{ hostvars['control_plane'].worker_join }} --ignore-preflight-errors=all"
+      args:
+        creates: /etc/kubernetes/kubelet.conf

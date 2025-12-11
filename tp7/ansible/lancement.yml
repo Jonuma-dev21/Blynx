@@ -1,0 +1,11 @@
+---
+
+- hosts: control_plane
+  become: yes
+  roles:
+    - control_plane
+
+- hosts: noeuds
+  become: yes
+  roles:
+    - workers

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-netflix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-netflix
+  template:
+    metadata:
+      labels:
+        app: postgres-netflix
+    spec:
+
+      volumes:
+        - name: init-sql
+          emptyDir: {}
+
+      initContainers:
+        - name: download-netflix-db
+          image: alpine:3.19
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              apk add --no-cache wget unzip
+              wget -O /tmp/netflix.zip \
+                https://github.com/lerocha/netflixdb/releases/download/v1.0.31/netflixdb-postgres.zip
+              unzip /tmp/netflix.zip -d /init-sql
+            
+          volumeMounts:
+            - name: init-sql
+              mountPath: /init-sql
+
+      containers:
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+          ports:
+            - containerPort: 5432

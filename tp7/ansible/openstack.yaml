@@ -1,0 +1,20 @@
+noeuds:
+  hosts:
+    noeud1:
+      ansible_host: 172.28.101.90
+      ansible_user: debian
+      ansible_private_key_file: '/home/jonuma/.ssh/cloud.key'
+   
+
+    noeud2:
+      ansible_host: 172.28.100.171
+      ansible_user: debian
+      ansible_private_key_file: '/home/jonuma/.ssh/cloud.key'
+     
+
+control_plane:
+  hosts:
+    control_plane:
+      ansible_host: 172.28.101.234
+      ansible_user: debian
+      ansible_private_key_file: '/home/jonuma/.ssh/cloud.key'
