@@ -29,7 +29,7 @@ kubectl apply -f $POD_DIR/postgres-replica-svc.yaml
 
 
 
-echo "Déploiement terminé !"
+echo "Déploiement terminé"
 
 # Optionnel : afficher les pods et services
 echo "État des pods :"
