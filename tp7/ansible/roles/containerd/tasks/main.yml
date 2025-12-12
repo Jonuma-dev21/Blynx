@@ -1,4 +1,5 @@
 ---
+
 - name: Ajouter keyring Docker
   ansible.builtin.get_url:
     url: https://download.docker.com/linux/debian/gpg

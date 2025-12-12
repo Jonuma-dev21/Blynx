@@ -1,0 +1,12 @@
+---
+# Installer la librairie Python kubernetes
+- import_tasks: python_lib.yml
+
+# Appliquer Flannel
+- name: Appliquer le plugin réseau Flannel
+  k8s:
+    state: present
+    src: "{{ flannel_url }}"
+    kubeconfig: /home/{{ ansible_user }}/.kube/config
+  become: yes
+  become_user: "{{ ansible_user }}"

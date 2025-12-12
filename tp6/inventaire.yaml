@@ -1,0 +1,7 @@
+serveur:
+  hosts:
+    serveur:
+      ansible_host: 172.28.102.94
+      ansible_user: debian
+      ansible_private_key_file: '~/.ssh/cloud.key'
+      

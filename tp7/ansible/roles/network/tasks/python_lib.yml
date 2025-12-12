@@ -1,0 +1,6 @@
+---
+- name: Installer la librairie Python kubernetes
+  apt:
+    name: python3-kubernetes
+    state: present
+    update_cache: yes

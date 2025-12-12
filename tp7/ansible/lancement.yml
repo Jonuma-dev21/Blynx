@@ -1,4 +1,8 @@
 ---
+- hosts: all
+  become: yes
+  roles:
+    - kubernetes
 
 - hosts: control_plane
   become: yes
@@ -9,3 +13,8 @@
   become: yes
   roles:
     - workers
+
+- hosts: control_plane
+  become: yes
+  roles:
+    - network

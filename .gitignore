@@ -1,1 +1,2 @@
-tp5/terraform.tfvars
+**/terraform.tfvars
+tp7/tofu/terraform.tfvars

@@ -8,6 +8,6 @@ spec:
     app: postgres-netflix
   ports:
     - protocol: TCP
-      port: 5432        # port interne du cluster
-      targetPort: 5432  # port du container PostgreSQL
+      port: 5432      
+      targetPort: 5432 
       nodePort: 32345   # port exposé sur Minikube
