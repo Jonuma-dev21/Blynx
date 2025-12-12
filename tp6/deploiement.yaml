@@ -4,7 +4,7 @@
   become: yes
   vars:
     local_q_files: "./Q*"   # chemin local vers les fichiers Q*
-    remote_dir: "~/q_scripts"  # dossier sur la VM
+    remote_dir: "/home/{{ ansible_user }}/q_scripts"  # dossier sur la VM
     script_to_run: "{{ script_name | default('Q3.sh') }}"
 
   tasks:

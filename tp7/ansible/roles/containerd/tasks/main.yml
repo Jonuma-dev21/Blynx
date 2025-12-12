@@ -37,17 +37,17 @@
   when: containerd_config.content is defined and
         ('SystemdCgroup' not in (containerd_config.content | b64decode))
 
-# 2. Create directory
+
 - name: Create containerd config directory
   file:
     path: /etc/containerd
     state: directory
 
-# 3. Generate default config
+
 - name: Generate default containerd config
   shell: containerd config default > /etc/containerd/config.toml
 
-# 4. Set SystemdCgroup to true (Crucial!)
+
 - name: Set SystemdCgroup to true in config.toml
   replace:
     path: /etc/containerd/config.toml
