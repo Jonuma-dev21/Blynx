@@ -28,7 +28,7 @@ kubectl delete -f $POD_DIR/init-replica-configmap.yaml --ignore-not-found
 echo "Suppression des réplicas..."
 kubectl delete -f $POD_DIR/postgres-replica.yaml --ignore-not-found
 
-echo "Suppression terminée !"
+echo "Suppression terminée..."
 
 # Optionnel : afficher les pods et services restants
 echo "État des pods restant :"
