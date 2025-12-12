@@ -1,0 +1,14 @@
+# tp8/pv-primary.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pg-pv-primary
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/postgres-primary"
+
+

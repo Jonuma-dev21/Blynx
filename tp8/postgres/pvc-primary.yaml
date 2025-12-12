@@ -1,0 +1,11 @@
+# tp8/pvc-primary.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pg-pvc-primary
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

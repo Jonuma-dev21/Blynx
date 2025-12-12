@@ -5,7 +5,7 @@ metadata:
   labels:
     app: nginx
 spec:
-  replicas: 5  # plus de pods que de nœuds (3 nœuds ici)
+  replicas: 5
   selector:
     matchLabels:
       app: nginx
@@ -16,6 +16,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:stable
+        image: nginx:latest
         ports:
         - containerPort: 80
+

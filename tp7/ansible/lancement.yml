@@ -1,20 +1,18 @@
----
 - hosts: all
   become: yes
   roles:
+    - common
+    - containerd
     - kubernetes
 
 - hosts: control_plane
   become: yes
   roles:
     - control_plane
-
 - hosts: noeuds
   become: yes
   roles:
     - workers
+    
 
-- hosts: control_plane
-  become: yes
-  roles:
-    - network
+

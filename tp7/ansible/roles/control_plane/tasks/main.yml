@@ -1,32 +1,56 @@
 ---
-- name: kubeadm init
-  command: kubeadm init --pod-network-cidr={{ pod_network_cidr }}
-  args:
-    creates: /etc/kubernetes/admin.conf
-  register: k8s_init
+- name: Check if Kubernetes is already initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_admin_conf
 
-- name: Créer répertoire kubeconfig
+- name: Initialize Kubernetes Control Plane
+  command: >
+    kubeadm init
+    --pod-network-cidr={{ pod_network_cidr }}
+  when: not k8s_admin_conf.stat.exists
+  register: kubeadm_output
+
+- name: Create .kube directory for the user
   file:
     path: /home/{{ ansible_user }}/.kube
     state: directory
     owner: "{{ ansible_user }}"
-    mode: 0700
+    group: "{{ ansible_user }}"
+    mode: "0700"
+  when: not k8s_admin_conf.stat.exists
 
-- name: Copier kubeconfig
-  command: cp /etc/kubernetes/admin.conf /home/{{ ansible_user }}/.kube/config
-  args:
-    creates: /home/{{ ansible_user }}/.kube/config
-
-- name: Changer permissions kubeconfig
-  file:
-    path: /home/{{ ansible_user }}/.kube/config
+- name: Copy admin.conf to user's kube config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/{{ ansible_user }}/.kube/config
+    remote_src: yes
     owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+  when: not k8s_admin_conf.stat.exists
 
-- name: Récupérer join command (token) pour les workers
+- name: Wait for Kubernetes API to be ready
+  command: kubectl get nodes
+  register: kube_api_ready
+  retries: 10
+  delay: 6
+  until: kube_api_ready.rc == 0
+  become: yes
+  become_user: "{{ ansible_user }}"
+
+- name: Install Flannel Pod Network
+  command: kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+  become: yes
+  become_user: "{{ ansible_user }}"
+  when: not k8s_admin_conf.stat.exists
+
+
+- name: Generate join command for workers
   command: kubeadm token create --print-join-command
   register: join_cmd
-  changed_when: false  # ne marque pas la tâche comme modifiée si elle est déjà générée
+  changed_when: false
 
-- name: Définir join command fact pour les workers
+- name: Set join command as a fact
   set_fact:
     worker_join: "{{ join_cmd.stdout }}"

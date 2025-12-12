@@ -15,9 +15,9 @@
 - name: Installer kubelet kubeadm kubectl
   apt:
     name:
-      - kubelet
-      - kubeadm
-      - kubectl
+    - kubelet={{ kube_version }}
+    - kubeadm={{ kube_version }}
+    - kubectl={{ kube_version }}
     state: present
     update_cache: yes
 

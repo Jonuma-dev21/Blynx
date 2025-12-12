@@ -1,0 +1,11 @@
+# tp8/primary-pg-hba-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: primary-pg-hba
+data:
+  pg_hba.conf: |
+    # TYPE  DATABASE        USER            ADDRESS                 METHOD
+    local   all             all                                     peer
+    host    all             all             0.0.0.0/0               md5
+    host    replication     replicator      0.0.0.0/0               md5

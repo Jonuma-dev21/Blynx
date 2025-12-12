@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+data:
+  postgresql.conf: |
+    wal_level = replica
+    max_wal_senders = 10
+    wal_keep_size = 64MB
+    hot_standby = on
+    listen_addresses = '*'
+
+  pg_hba.conf: |
+    local   all             all                                     md5
+    host    all             all             0.0.0.0/0               md5
+    host    replication     rep_user        0.0.0.0/0               md5
+
+  init.sh: |
+    #!/bin/bash
+    set -e
+
+    PGDATA_DIR="/var/lib/postgresql/data/pgdata"
+
+    # Création du répertoire et permissions
+    mkdir -p $PGDATA_DIR
+    chown -R postgres:postgres /var/lib/postgresql/data
+    chmod 700 /var/lib/postgresql/data
+
+    wait_for_primary() {
+      echo "Waiting for Primary to accept connections..."
+      until nc -z -w 2 postgres-primary-svc 5432; do
+        echo "Primary not ready yet..."
+        sleep 2
+      done
+      echo "Primary is ready!"
+    }
+
+    # Vérifie si c'est le primaire
+    if [[ "$HOSTNAME" == "postgres-primary-0" ]]; then
+      echo "--> I am PRIMARY ($HOSTNAME)"
+      if [ -z "$(ls -A $PGDATA_DIR)" ]; then
+        echo "Initializing Primary DB..."
+        gosu postgres initdb -D $PGDATA_DIR
+        cp /config/postgresql.conf $PGDATA_DIR/postgresql.conf
+        cp /config/pg_hba.conf $PGDATA_DIR/pg_hba.conf
+        gosu postgres pg_ctl -D $PGDATA_DIR -w start
+        echo "Creating Replication User..."
+        gosu postgres psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+          CREATE USER rep_user WITH REPLICATION ENCRYPTED PASSWORD 'rep_password';
+          ALTER USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';
+    EOSQL
+        gosu postgres pg_ctl -D $PGDATA_DIR stop
+      else
+        echo "Primary DB already exists. Skipping initialization."
+      fi
+    else
+      echo "--> I am REPLICA ($HOSTNAME)"
+      # Supprime les anciennes données
+      rm -rf $PGDATA_DIR/*
+
+      # Attend que le primaire soit prêt via le service headless
+      wait_for_primary
+
+      echo "Cloning data from Primary..."
+      PGPASSWORD=rep_password gosu postgres pg_basebackup \
+        -h postgres-primary-svc \
+        -D $PGDATA_DIR \
+        -U rep_user \
+        -vP -R \
+        --wal-method=stream
+
+      chmod 700 $PGDATA_DIR
+    fi
+
+    # Démarre PostgreSQL en écoutant sur toutes les interfaces
+    exec gosu postgres postgres -D $PGDATA_DIR
