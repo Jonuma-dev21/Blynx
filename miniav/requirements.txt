@@ -1,0 +1,1 @@
+yara-python>=4.5   # optionnel : sans lui, le détecteur YARA est ignoré

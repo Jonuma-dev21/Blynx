@@ -1,5 +1,0 @@
----
-- name: Joindre le cluster
-  command: "{{ hostvars['control_plane'].worker_join }} --ignore-preflight-errors=all"
-  args:
-    creates: /etc/kubernetes/kubelet.conf
