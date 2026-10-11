@@ -1,2 +1,44 @@
-**/terraform.tfvars
-tp7/tofu/terraform.tfvars
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# --- Outils / tests ---
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# --- Secrets (clé API abuse.ch, etc.) ---
+.env
+*.key
+
+# --- Sécurité : ne JAMAIS committer de vrais échantillons ---
+quarantine/
+*.quar
+*.quar.json
+samples/
+malware/
+av_test/
+
+# --- Données volumineuses téléchargées ---
+data/*.csv
+data/*.zip
+data/*.json
+data/*.db
+data/*.sqlite
+
+# --- Logs et rapports générés ---
+*.log
+*.jsonl
+reports/
+
+# --- Éditeurs / OS ---
+.vscode/
+.idea/
+.DS_Store
